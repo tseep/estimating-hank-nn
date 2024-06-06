@@ -1,0 +1,65 @@
+[build-system]
+requires = [
+  "hatchling",
+  "numpy>=1.26.4",
+  "scipy>=1.12.0",
+  "matplotlib>=3.8.3",
+  "torch>=2.3.0",
+  "tqdm>=4.65.0",
+]
+build-backend = "hatchling.build"
+
+[project]
+name = "estimating-hank-nn"
+dynamic = ["version"]
+description = ''
+readme = "README.md"
+requires-python = ">=3.8"
+license = ""
+keywords = []
+authors = [
+  { name = "Hanno Kase"},
+  { name = "Leonardo Melosi"},
+  { name = "Matthias Rottner"},
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Programming Language :: Python :: Implementation :: PyPy",
+]
+dependencies = []
+
+[project.urls]
+Documentation = "https://github.com/tseep/estimating-hank-nn#readme"
+Issues = "https://github.com/tseep/estimating-hank-nn/issues"
+Source = "https://github.com/tseep/estimating-hank-nn"
+
+[tool.hatch.version]
+path = "src/estimating_hank_nn/__about__.py"
+
+[tool.hatch.envs.types]
+extra-dependencies = ["mypy>=1.0.0"]
+[tool.hatch.envs.types.scripts]
+check = "mypy --install-types --non-interactive {args:src/estimating_hank_nn tests}"
+
+[tool.coverage.run]
+source_pkgs = ["estimating_hank_nn", "tests"]
+branch = true
+parallel = true
+omit = ["src/estimating_hank_nn/__about__.py"]
+
+[tool.coverage.paths]
+estimating_hank_nn = [
+  "src/estimating_hank_nn",
+  "*/estimating-hank-nn/src/estimating_hank_nn",
+]
+tests = ["tests", "*/estimating-hank-nn/tests"]
+
+[tool.coverage.report]
+exclude_lines = ["no cov", "if __name__ == .__main__.:", "if TYPE_CHECKING:"]
