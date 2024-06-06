@@ -15,7 +15,7 @@
 #
 # \begin{align}
 # 	&	\hat{X}_t = E_t \hat{X}_{t+1} - \sigma^{-1}\left( \phi_{\Pi}\hat{\Pi}_t+ \phi_Y \hat{X}_{t} - E_t \hat{\Pi}_{t+1} - \hat{R}_t^\ast\right), \\
-#	&	\hat{\Pi}_t = \kappa \hat{X}_t + \beta E_t \hat{\Pi}_{t+1}, \\
+# 	&	\hat{\Pi}_t = \kappa \hat{X}_t + \beta E_t \hat{\Pi}_{t+1}, \\
 #   &	\hat{R}_t^\ast = \rho_A \hat{R}_{t-1}^\ast + \sigma (\rho_A-1)\omega {\sigma_{A}} \epsilon_t^A,
 # \end{align}
 #
@@ -23,7 +23,7 @@
 
 # %% [markdown]
 # ## Configuration
-# To load the neural network solution for the model set `load_model = True`. 
+# To load the neural network solution for the model set `load_model = True`.
 #
 # To load the neural network particle filter solution set `load_pf = True`.
 #
@@ -51,7 +51,7 @@ REQUIRED_PACKAGES = {
 for package, url in REQUIRED_PACKAGES.items():
     try:
         dist = importlib.metadata.distribution(package)
-        print("{} ({}) is installed".format(dist.metadata['Name'], dist.version))
+        print("{} ({}) is installed".format(dist.metadata["Name"], dist.version))
     except importlib.metadata.PackageNotFoundError:
         print("{} is NOT installed. Installing now...".format(package))
         if url:
@@ -126,9 +126,9 @@ shock_dist = {
 
 # %% [markdown]
 # ### Class for the simple 3 equation NK model
-# 
+#
 # To give an overview, the `NKModel` class has the following methods:
-# * Convenience methods: 
+# * Convenience methods:
 #   * `to` - move the model to a device,
 #   * `save` - save the model object,
 #   * `load` - load the model object,
@@ -151,6 +151,7 @@ shock_dist = {
 #   * `train_model` - train the model,
 #
 # **In short, the `residuals` method is the most important and effectively defines the economic model.**
+
 
 # %%
 class NKModel(object):
@@ -509,10 +510,10 @@ Path(directory).mkdir(parents=True, exist_ok=True)  # Create the directory if it
 set_rc_params()
 
 
-
 # %% [markdown]
-# ### Figure 2 in the paper. 
+# ### Figure 2 in the paper.
 # *Note that the figure may deviate from the one in the paper because some settings are not exactly the same as in the paper. We made these adjustments to ensure a fast runtime in different computational environments.*
+
 
 # %%
 def plot_avg_loss(loss_dict, ylim=[1e-10, 1e-4], ma=1000, legend=None, fig=None, ax=None):
@@ -562,6 +563,7 @@ save_figure(fig_avg_loss, f"{directory}/model_loss")
 # ### Additional figure.
 # Figure shows the average loss as well as the loss of the different residual equations.
 
+
 # %%
 def plot_loss(loss_dict, ylim=None, ma=1000, fig=None, ax=None):
     if fig is None and ax is None:
@@ -609,7 +611,7 @@ def plot_loss(loss_dict, ylim=None, ma=1000, fig=None, ax=None):
     return fig, ax
 
 
-# %% 
+# %%
 fig_loss, _ = plot_loss(model.loss_dict, ma=1000)
 
 
@@ -681,6 +683,7 @@ def policy_over_par_list(model, shock_std=-1.0, par_list=None, n=100, analytical
 # %% [markdown]
 # ### Figures 3 and 9 in the paper.
 # *Note that the figures may deviate from the one in the paper because some settings are not exactly the same as in the paper. We chose these adjustments to ensure a fast runtime in different computational environments.*
+
 
 # %%
 def plot_par_list(model, shock_std=-1.0, policy="Pi", par_list=None, n=100, fig=None, ax=None):
@@ -1155,6 +1158,7 @@ if load_pf:
 # ###  Figure 4 in the paper.
 # *Note that the figure may deviate from the one in the paper because some settings are not exactly the same as in the paper. We chose these adjustments to ensure a fast runtime in different computational environments.*
 
+
 # %%
 def plot_loss_likeli(loss_dict, ylim=None, ma=1, legend=None):
     # Create figure with 1 row and 2 columns for subplots
@@ -1226,7 +1230,7 @@ def plot_likelihood_single(pf, par_name="sigma", N_1=50, N_2=250, P_1=2000, P_2=
 
     if full:
         ax.plot(grid, ll_grid_full, linestyle="dashed", color="red", label=f"Particle Filter, {P_1} particles")
-    
+
     if random:
         ax.scatter(grid_random, ll_grid_random, marker="o", s=15, alpha=0.75, color="#dd8453", label=f"Particle Filter, {P_2} particles", zorder=1)
 
@@ -1282,6 +1286,7 @@ def compute_results(pf, parameter, n=50, n_random=200, P_1=100, P_2=100, sim=100
 
     return result
 
+
 # Store results in a dictionary
 results = {}
 for par_name in NK_par.keys():
@@ -1291,6 +1296,7 @@ for par_name in NK_par.keys():
 # %% [markdown]
 # ###  Figure 10 in the paper.
 # *Note that the figure may deviate from the one in the paper because some settings are not exactly the same as in the paper. We chose these adjustments to ensure a fast runtime in different computational environments.*
+
 
 # %%
 def plot_likelihood_parameters(results, fig=None, ax=None):
@@ -1322,13 +1328,13 @@ def plot_likelihood_parameters(results, fig=None, ax=None):
     for i, (par_name, result) in enumerate(results.items()):
         ax = axes[i]  # Use the specific Axes object
         ax.plot(result["grid"], result["ll_grid_surrogate"], color="blue", label="Neural Network")
-        
+
         if results[par_name].get("ll_grid_full") is not None:
             ax.plot(result["grid"], result["ll_grid_full"], color="red", linestyle="dashed", label="Particle Filter")
-        
+
         if results[par_name].get("ll_grid_random") is not None:
             ax.scatter(result["grid_random"], result["ll_grid_random"], marker="o", s=15, alpha=0.5, color="#dd8453", label="Random Draws", zorder=1)
-        
+
         ax.axvline(x=NK_par[par_name], color="black", linestyle="dotted", label="True value")
 
         # Set y-axis limits
@@ -1363,7 +1369,4 @@ fig_likelihood_parameters, _ = plot_likelihood_parameters(results)
 # %%
 save_figure(fig_likelihood_parameters, f"{directory}/NN_likelihood_all")
 
-# %%
-# Generate a notebook (.ipynb) from the script (.py)
-! jupytext --to notebook analytical.py   
 # %%
