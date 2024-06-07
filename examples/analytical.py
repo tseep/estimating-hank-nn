@@ -82,14 +82,14 @@ from estimating_hank_nn.structures import Parameters, State, Ranges, Shocks
 # Neural network layers
 from estimating_hank_nn.networks import NormalizeLayer
 
-# Helper funcitons
+# Helper functions
 from estimating_hank_nn.helpers import ergodic_sigma
 
 # %% [markdown]
 # ## Extended Model Solution with our Neural Network Approach
 # Outline:
 # 1. **Parameters** - set the parameter values and bounds of the model.
-# 2. **Class for the simple 3 equation NK model** - creat a class for the model that has methods to simulate the model, calculate the residuals, calculate the loss, and train the model.
+# 2. **Class for the simple 3 equation NK model** - create a class for the model that has methods to simulate the model, calculate the residuals, calculate the loss, and train the model.
 # 3. **Create the model and train it** - create the model object and train the NN to solve the model.
 
 # %% [markdown]
