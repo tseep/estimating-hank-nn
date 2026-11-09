@@ -1,0 +1,29 @@
+/* Keep Quarto's Cosmo typography, colors, and layout, as in the GEM documentation. */
+.lesson-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .3rem;
+  margin: 1rem 0 1.5rem;
+}
+
+/* Small link under each code excerpt to its lines on GitHub. */
+.code-source {
+  text-align: right;
+  font-size: .8rem;
+  margin: -.6rem 0 1.2rem;
+}
+
+/* Extensions overview: center each area name across the rows it spans. */
+.extension-table col:nth-child(1) { width: 14% !important; }
+.extension-table col:nth-child(2) { width: 60% !important; }
+.extension-table col:nth-child(3) { width: 26% !important; }
+.extension-table td[rowspan] {
+  vertical-align: middle;
+  font-weight: 500;
+}
+
+/* Keep long code excerpts to a manageable height; they scroll inside the box. */
+div.sourceCode pre.sourceCode {
+  max-height: 32rem;
+  overflow-y: auto;
+}

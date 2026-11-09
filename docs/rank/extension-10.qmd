@@ -1,0 +1,185 @@
+---
+title: "Extension 10: CPU and GPU"
+page-layout: article
+---
+
+We now train the policy network on a GPU. The economic equations and training settings are
+unchanged.
+
+::: {.lesson-links}
+[View notebook on GitHub]({{< meta repo-blob >}}/examples/rank/notebooks/rank_extension_10.ipynb){.btn .btn-outline-secondary .btn-sm}
+:::
+
+## Model
+
+The model, observation equation, and filtering settings are those of
+[Extension 9](extension-09.qmd). The earlier examples run on a CPU, because we want the initial
+code to be as widely accessible as possible. However, to solve more challenging problems, it is
+necessary to have access to a decent GPU. We now adapt our code to work with GPUs, which are
+very commonly used in deep learning. The solution file for this extension stops with an error
+if no GPU is available.
+
+PyTorch names each kind of GPU by its backend. NVIDIA GPUs use CUDA, and AMD GPUs appear under
+the same name with the ROCm build of PyTorch. Apple GPUs use MPS, through the Metal framework,
+and Intel GPUs use XPU.
+
+::: {.callout-tip}
+## A GPU is not always faster
+
+A GPU pays off when each step works on large arrays. Our policy network is small, and the
+particle filter moves one period at a time through many small steps. The overhead of sending
+each step to the GPU then dominates. On a MacBook with an M1 Pro, training the policy network
+took 9 minutes on MPS and 2.5 minutes on the CPU. Generating the likelihood targets took
+22 minutes on the CPU and had not finished after 80 minutes on MPS. We therefore train only
+the policy network on the GPU and keep the likelihood steps on the CPU. MPS is still useful
+for testing GPU code on a Mac.
+:::
+
+## Neural network solution
+
+### Formulation
+
+The policy and likelihood objectives are unchanged. Only policy training moves to the GPU.
+The particle filter, the likelihood targets, and the likelihood network stay on the CPU. The device does not change the number of equations, Monte Carlo draws, or
+observations. Random draws and floating-point arithmetic may produce different numerical
+paths across devices.
+
+### In the code
+
+#### Find the GPU
+
+`torch.accelerator` returns the GPU that PyTorch finds, whatever its kind, so the same code runs
+on NVIDIA, AMD, Apple, and Intel GPUs. The script stops with an error if there is none. Set
+`USE_GPU = False` to run on the CPU.
+
+```{.python filename="examples/rank/rank_extension_10.py"}
+load_model = True
+load_pf_dataset = True
+load_pf_network = True
+USE_GPU = True  # Set to False to run on the CPU.
+
+# New in Extension 10: use the GPU that PyTorch finds, and stop with an error if there is none.
+if USE_GPU:
+    if not torch.accelerator.is_available():
+        raise RuntimeError("No GPU found. Set USE_GPU = False to run on the CPU.")
+    DEVICE = torch.accelerator.current_accelerator().type
+else:
+    DEVICE = "cpu"
+print(f"Running on {DEVICE}.")
+
+# New in Extension 10: the particle filter and the likelihood network are small, so they
+# run faster on the CPU than on a GPU. Only policy training uses DEVICE.
+PF_DEVICE = "cpu"
+
+torch.set_num_threads(4)
+set_rc_params()
+
+# Outputs are stored next to this notebook.
+folder = Path("outputs") / "extension_10"
+figures = folder / "figures"
+figures.mkdir(parents=True, exist_ok=True)
+```
+::: {.code-source}
+[View in `rank_extension_10.py` on GitHub]({{< meta repo-blob >}}/examples/rank/rank_extension_10.py)
+:::
+
+#### Pass the device to each stage
+
+`DEVICE` is passed to policy training. `PF_DEVICE` keeps likelihood-target generation,
+surrogate training, and the filter comparison on the CPU. Plotting uses CPU arrays, and saved
+weights can be loaded on the CPU. Simulating the observations stays on the CPU. Saved results
+are reused as in the other examples.
+
+```{.python filename="examples/rank/rank_extension_10.py"}
+model = NKModelExt10(PARAMETERS, RANGES, SHOCKS)
+model_path = folder / "model.pt"
+train_model = not load_model or not model_path.exists()
+
+training_config = TrainingConfig(
+    iteration=20000,
+    inner_steps=2,
+    steps=5,
+    batch=100,
+    mc=10,
+    par_draw_after=10,
+    lr=1e-3,
+    device=DEVICE,
+    seed=1234,
+    weights=ConstantWeights([1000.0, 1000.0, 1000.0]),
+    detach_next=True,
+)
+
+if train_model:
+    print("Training the policy network...")
+    model.train_model(training_config)
+    # A new policy needs new observations, so delete the saved ones.
+    (folder / "observations.pt").unlink(missing_ok=True)
+    model.save(model_path)
+else:
+    print("Loading the saved policy network.")
+    model.load(model_path)
+```
+::: {.code-source}
+[View in `rank_extension_10.py` on GitHub]({{< meta repo-blob >}}/examples/rank/rank_extension_10.py)
+:::
+
+```{.python filename="examples/rank/rank_extension_10.py"}
+surrogate_path = folder / "surrogate.pt"
+train_pf_network = not load_pf_network or not load_pf_dataset or make_data or not surrogate_path.exists()
+make_pf_dataset = train_pf_network and (not load_pf_dataset or make_data or not pf_dataset_path.exists())
+
+if make_pf_dataset:
+    print("Generating likelihood targets...")
+    pf.generate_likelihood_dataset(
+        N=7500, P=250, sim=125, burn=100, sobol=True, device=PF_DEVICE, seed=12345,
+    )
+    pf_dataset_path.parent.mkdir(parents=True, exist_ok=True)
+    torch.save(pf.dataset, pf_dataset_path)
+elif train_pf_network:
+    print("Loading the saved likelihood targets.")
+    pf.dataset = torch.load(pf_dataset_path, weights_only=True)
+```
+::: {.code-source}
+[View in `rank_extension_10.py` on GitHub]({{< meta repo-blob >}}/examples/rank/rank_extension_10.py)
+:::
+
+```{.python filename="examples/rank/rank_extension_10.py"}
+if train_pf_network:
+    (folder / "likelihood_sigma.pt").unlink(missing_ok=True)
+    (folder / "likelihood_all.pt").unlink(missing_ok=True)
+    print("Training the likelihood network...")
+    pf.make_surrogate_network(hidden=256, layers=5, activation="Mish", seed=1234)
+    pf.train(
+        batch=200, epochs=3000, lr=1e-3,
+        validation_share=0.25, print_after=100, device=PF_DEVICE, seed=1234,
+        optimizer_name="Adam", scheduler_name="step", step_size=1000, gamma=0.1,
+    )
+    pf.dataset = None  # Targets are stored separately in pf_dataset_path.
+    pf.save(folder, name="surrogate")
+else:
+    print("Loading the saved likelihood network.")
+    pf.load(surrogate_path)
+```
+::: {.code-source}
+[View in `rank_extension_10.py` on GitHub]({{< meta repo-blob >}}/examples/rank/rank_extension_10.py)
+:::
+
+## Results
+
+### Solution
+
+![Mean squared residuals during training, with their average on top and each equation below, smoothed by a moving median over 100 iterations.](/assets/results/rank/extension_10/policy_loss.png)
+
+![Output gap $\hat X_t$ as each estimated parameter varies, the others at reference values, after a productivity innovation of minus one standard deviation.](/assets/results/rank/extension_10/policy_X.png)
+
+![Inflation $\hat\Pi_t$ as each estimated parameter varies.](/assets/results/rank/extension_10/policy_Pi.png)
+
+![Nominal rate $\hat I_t$ as each estimated parameter varies.](/assets/results/rank/extension_10/policy_I.png)
+
+### Likelihood
+
+![Training and validation mean squared error of the likelihood network.](/assets/results/rank/extension_10/likelihood_loss.png)
+
+![Log likelihood as risk aversion $\sigma$ varies, the other parameters at reference values. The line is the likelihood network and the dots are particle-filter evaluations at random values.](/assets/results/rank/extension_10/likelihood.png)
+
+![The same comparison for every estimated parameter.](/assets/results/rank/extension_10/likelihood_all.png)

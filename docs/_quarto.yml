@@ -1,0 +1,91 @@
+project:
+  type: website
+  output-dir: _site
+  pre-render:
+    - python3 _prepare.py
+  render:
+    - index.qmd
+    - overview.qmd
+    - setup.qmd
+    - rank/index.qmd
+    - rank/extension-01.qmd
+    - rank/extension-02.qmd
+    - rank/extension-03.qmd
+    - rank/extension-04.qmd
+    - rank/extension-05.qmd
+    - rank/extension-06.qmd
+    - rank/extension-07.qmd
+    - rank/extension-08.qmd
+    - rank/extension-09.qmd
+    - rank/extension-10.qmd
+    - ks/one-asset.qmd
+    - ks/two-asset.qmd
+    - hankmp/index.qmd
+
+execute:
+  enabled: false
+
+# GitHub location of the examples. Pages link to notebooks and scripts under this prefix.
+repo-blob: "https://github.com/tseep/estimating-hank-nn/blob/main"
+
+website:
+  title: "Estimating HANK with Neural Networks"
+  site-url: "https://tseep.github.io/estimating-hank-nn/"
+  description: "Learning guide for Estimating Nonlinear Heterogeneous Agent Models with Neural Networks."
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - href: overview.qmd
+        text: Overview
+      - href: setup.qmd
+        text: Setup
+      - text: New Keynesian model
+        menu:
+          - href: rank/index.qmd
+            text: Baseline model
+          - text: "---"
+          - href: rank/extension-01.qmd
+            text: "Extension 1: Policy functions"
+          - href: rank/extension-02.qmd
+            text: "Extension 2: Parameters"
+          - href: rank/extension-03.qmd
+            text: "Extension 3: Endogenous state variables"
+          - href: rank/extension-04.qmd
+            text: "Extension 4: Shocks and exogenous states"
+          - href: rank/extension-05.qmd
+            text: "Extension 5: Pseudo-state variables"
+          - href: rank/extension-06.qmd
+            text: "Extension 6: Observed variables"
+          - href: rank/extension-07.qmd
+            text: "Extension 7: Transforming observations"
+          - href: rank/extension-08.qmd
+            text: "Extension 8: Policy network options"
+          - href: rank/extension-09.qmd
+            text: "Extension 9: Filtering options"
+          - href: rank/extension-10.qmd
+            text: "Extension 10: CPU and GPU"
+      - text: Heterogeneous agent models
+        menu:
+          - href: ks/one-asset.qmd
+            text: "Krusell–Smith: one asset"
+          - href: ks/two-asset.qmd
+            text: "Krusell–Smith: two assets"
+          - href: hankmp/index.qmd
+            text: One-asset HANK
+    right:
+      - icon: github
+        href: https://github.com/tseep/estimating-hank-nn
+        aria-label: GitHub repository
+  page-footer:
+    center: "© 2026 Hanno Kase, Leonardo Melosi, and Matthias Rottner."
+
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+    toc: true
+    toc-depth: 3
+    code-copy: true
+    code-overflow: scroll
+    link-external-newwindow: true

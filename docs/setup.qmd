@@ -1,0 +1,30 @@
+---
+title: "Setting up Python"
+page-layout: article
+---
+
+The examples are tested with Python 3.12 and the package versions in `requirements.txt`.
+We use conda for the environment and pip for the packages. From the repository root, run
+
+```bash
+conda create -n estimating-hank-nn python=3.12
+conda activate estimating-hank-nn
+pip install -r requirements.txt
+pip install -e .
+```
+
+The last line installs the shared `estimating_hank_nn` package in editable mode, so the
+examples can import it and changes to the source take effect without reinstalling. To check
+the installation and see which accelerators PyTorch can use, run
+
+```bash
+python -c "import torch, estimating_hank_nn; print(torch.__version__, torch.cuda.is_available(), torch.backends.mps.is_available())"
+```
+
+Then open `examples/rank/rank_baseline.py` in VS Code, select the `estimating-hank-nn`
+environment as the kernel, and run the cells in order.
+
+The New Keynesian examples run on a CPU, except Extension 10, which defaults to CUDA. An
+NVIDIA GPU (`"cuda"`) or an Apple GPU (`"mps"`) speeds up training, and
+[Extension 10](rank/extension-10.qmd) shows how to select one. Training the heterogeneous agent
+models needs an NVIDIA GPU, but their saved networks let you reproduce the results on a laptop.

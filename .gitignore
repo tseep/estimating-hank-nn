@@ -12,7 +12,7 @@ __pycache__/
 .Python
 build/
 develop-eggs/
-# dist/
+dist/
 downloads/
 eggs/
 .eggs/
@@ -43,3 +43,24 @@ ipython_config.py
 
 # Vscode
 .vscode/
+
+# Local source material and environments
+inputs/
+local/
+.venv/
+.cache/
+
+# Quarto and generated documentation inputs
+docs/_site/
+.quarto/
+*.quarto_ipynb
+docs/assets/results/
+docs/assets/mathjax/
+
+# Reproducible intermediate results (checkpoints and figures are retained)
+examples/rank/outputs/**/datasets/
+examples/*/outputs/smoke/
+*.pt.tmp
+# Quarto renders pages next to their sources before moving them into _site/.
+docs/*.html
+docs/*/*.html

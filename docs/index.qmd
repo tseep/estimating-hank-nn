@@ -1,0 +1,39 @@
+---
+title: "Learning guide"
+page-layout: article
+---
+
+Examples accompanying *Estimating Nonlinear Heterogeneous Agent Models with Neural Networks*
+by Hanno Kase, Leonardo Melosi, and Matthias Rottner.
+
+Learn how to solve and estimate macroeconomic models with neural networks, starting with
+a small New Keynesian model, where each extension introduces one change at a time, and
+moving on to progressively more complex models.
+
+Start with the [overview](overview.qmd). It explains the method step by step,
+shows how the examples are organized, and sets up the Python environment.
+
+## Examples
+
+- [New Keynesian model](rank/index.qmd), with ten extensions
+- [One-asset HANK](hankmp/index.qmd)
+- Krusell–Smith with [one asset](ks/one-asset.qmd) and [two assets](ks/two-asset.qmd)
+
+Every example ships its trained networks and saved results, so the code can reproduce the
+figures without retraining.
+
+## Citation
+
+Please cite the main paper when using the code or these examples.
+
+Hanno Kase, Leonardo Melosi, and Matthias Rottner.
+[*Estimating Nonlinear Heterogeneous Agent Models with Neural Networks*](https://www.hannokase.com/research/deep-learning-zlb/KMR_NeuralNetwork_Hank.pdf).
+
+```bibtex
+@article{kase_melosi_rottner_neural_networks,
+  author = {Kase, Hanno and Melosi, Leonardo and Rottner, Matthias},
+  title  = {Estimating Nonlinear Heterogeneous Agent Models
+            with Neural Networks},
+  url    = {https://www.hannokase.com/research/deep-learning-zlb/KMR_NeuralNetwork_Hank.pdf}
+}
+```

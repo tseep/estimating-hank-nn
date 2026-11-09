@@ -1,0 +1,159 @@
+---
+title: "Overview"
+page-layout: article
+---
+
+These examples show step by step how to solve and estimate nonlinear macroeconomic models
+with neural networks. They accompany the paper [*Estimating Nonlinear Heterogeneous Agent Models
+with Neural Networks*](https://www.hannokase.com/research/deep-learning-zlb/KMR_NeuralNetwork_Hank.pdf).
+
+The examples start with a linearized New Keynesian model and ten extensions of it, and then
+move to heterogeneous agent models, the Krusell–Smith model with one and two assets and a
+heterogeneous agent New Keynesian (HANK) model.
+[How the examples are organized](#how-the-examples-are-organized) describes them in turn.
+
+## The method at a glance
+
+The method has two parts.
+
+1. An **extended neural network** solves the model for many parameter values at once.
+2. A **neural network particle filter** then approximates the likelihood, so that
+   estimation does not need to run a particle filter at every parameter value.
+
+### Solving the extended model
+
+**1. Map the model to the general form.** Write the model in terms of its state variables
+$\mathbb S_t$, shocks $\nu_t$, and the policy functions $\psi_t$ that the network will learn.
+Split the parameters into those to estimate, $\tilde\Theta$, and those to calibrate,
+$\bar\Theta$. In a heterogeneous agent model the continuum of households becomes a finite but
+large number $L$ of households, and the state contains every household's state together with
+the aggregate states.
+
+**2. Parametrize the policies with an extended network.** A deep neural network approximates
+the policy functions,
+
+$$\psi_t=\psi_{NN}\bigl(\mathbb S_t,\tilde\Theta\mid\bar\Theta\bigr).$$
+
+The parameters to estimate enter as inputs, like states. We call them pseudo-state variables.
+The network is trained once and can then be evaluated at any parameter value without solving
+the model again. Heterogeneous agent models use one network for individual policies and one
+for aggregate policies.
+
+**3. Turn the equilibrium conditions into a loss.** Each equilibrium condition becomes a
+residual $F_j$ that is zero at the solution. Conditional expectations are averages over Monte
+Carlo draws of next-period shocks. Occasionally binding constraints, such as a borrowing limit,
+become a Fischer–Burmeister condition. The loss is a weighted mean of the squared residuals
+over a batch of simulated economies.
+
+**4. Train by simulating the economy.** Training uses stochastic gradient methods. Each economy
+in the batch has its own parameter draw. After a few gradient updates, the economies are
+simulated forward with the current network, and from time to time new parameters are drawn.
+The network therefore trains on states and parameter values where the model economy actually
+spends its time.
+
+### The neural network particle filter
+
+The likelihood of a nonlinear model is evaluated with a particle filter. With the extended
+network, a single evaluation of the solution is fast. But the particle filter evaluates it for
+thousands of particles in every one of hundreds of periods, and estimation needs the likelihood
+at many parameter values. The particle filter therefore becomes the bottleneck.
+
+**1. Generate a likelihood dataset.** Run the particle filter once at many parameter draws,
+spread over the parameter space with a Sobol sequence. This gives a dataset of parameter
+vectors and their log likelihoods.
+
+**2. Train the likelihood network.** A second neural network learns the map from parameters
+to log likelihood. Part of the draws is held out for validation, to check that the network
+also fits parameter values it has not seen.
+
+**3. Use it in estimation.** The trained network returns the likelihood almost instantly, so it
+can replace the particle filter inside Bayesian estimation. The examples here compare the
+likelihood network with the particle filter. The paper and its replication package carry out
+the estimation.
+
+## How the examples are organized
+
+The use of different models serves two purposes. First, several models give a clear,
+incremental learning path for researchers interested in solving and estimating nonlinear
+heterogeneous agent models with neural networks. The New Keynesian model is substantially
+faster to solve and does not require access to a GPU, so it is very well suited to introduce
+the key features of our solution approach and the neural network setup. The inclusion of
+heterogeneity requires some adaptations to the code, which makes the heterogeneous agent
+examples essential. Second, the code for these models is a starting point for other
+researchers who wish to work with neural networks. For this reason, we focus on these seminal
+models.
+
+The examples are organized in two tiers. The second moves from a representative household
+to a distribution of households.
+
+### 1. The New Keynesian model
+
+The [baseline](rank/index.qmd) is the linearized three-equation New Keynesian model, the
+first proof of concept in the paper. It shows the full workflow, from solving the model with
+the extended network to approximating its likelihood. Because the model has an analytical
+solution, we can check the network's policies against it. It runs on a laptop CPU.
+
+Ten extensions then change one element of the baseline at a time. Each starts from the
+previous one, so together they build up a richer model step by step.
+
+::: {.extension-table}
+
++-------------------------------+----------------------------------------------------+------------------------+
+| Extension                     | What changes                                       | Area                   |
++===============================+====================================================+========================+
+| [1](rank/extension-01.qmd)    | Additional policy functions                        | Model elements         |
++-------------------------------+----------------------------------------------------+                        +
+| [2](rank/extension-02.qmd)    | Additional parameters                              |                        |
++-------------------------------+----------------------------------------------------+                        +
+| [3](rank/extension-03.qmd)    | Endogenous state variables                         |                        |
++-------------------------------+----------------------------------------------------+                        +
+| [4](rank/extension-04.qmd)    | Shocks as exogenous state variables                |                        |
++-------------------------------+----------------------------------------------------+                        +
+| [5](rank/extension-05.qmd)    | Calibrated parameters and pseudo-state variables   |                        |
++-------------------------------+----------------------------------------------------+------------------------+
+| [6](rank/extension-06.qmd)    | Choosing the observed variables                    | Observation equation   |
++-------------------------------+----------------------------------------------------+                        +
+| [7](rank/extension-07.qmd)    | Transforming the observations                      |                        |
++-------------------------------+----------------------------------------------------+------------------------+
+| [8](rank/extension-08.qmd)    | Options for the policy network                     | Numerical settings     |
++-------------------------------+----------------------------------------------------+                        +
+| [9](rank/extension-09.qmd)    | Options for the filtering step                     |                        |
++-------------------------------+----------------------------------------------------+                        +
+| [10](rank/extension-10.qmd)   | Training on a CPU or a GPU                         |                        |
++-------------------------------+----------------------------------------------------+------------------------+
+
+:::
+
+### 2. Heterogeneous agent models
+
+The heterogeneous agent models apply the same recipe to a distribution of households with
+idiosyncratic income risk and a borrowing limit. Their networks take the whole distribution as
+input, and each solution is checked against the sequence-space Jacobian (SSJ) method. The
+[Krusell–Smith model with one asset](ks/one-asset.qmd) introduces the two-stage solution, first
+the deterministic steady state and then the economy with aggregate risk. The
+[two-asset version](ks/two-asset.qmd) adds a government bond, so households choose a portfolio.
+The [one-asset HANK model](hankmp/index.qmd) adds sticky prices, labor supply, and a
+monetary-policy shock whose persistence is a pseudo-state variable.
+
+### Structure of each example
+
+Every page follows the same order. It states the model, maps it to the general form, walks
+through the code that changes, and ends with the results. Each code block names the script it
+comes from.
+
+Every example is a Python script, and the `notebooks` folder next to it holds a Jupyter
+notebook with the same code. Each New Keynesian script contains the complete model, so every
+extension runs on its own.
+
+To see exactly what an extension changes, compare its script with the previous one. In VS
+Code, select the two scripts in the Explorer, right-click, and choose *Compare Selected*, or
+run `code --diff rank_extension_02.py rank_extension_03.py` from `examples/rank`. The
+differences are a few dozen lines each. Only the policy plots come from
+`rank_plots.py` in the same folder. The heterogeneous agent examples keep their model,
+analysis, and plotting code in separate files, as in the replication package.
+
+Each example ships with its trained networks and saved results, which load by default. The
+flags at the top of each script retrain any stage. The first cell of each notebook moves to the
+example folder, where the helper modules and outputs are.
+
+To run the examples, first [set up Python](setup.qmd).

@@ -1,0 +1,7 @@
+# Offline rendering: `quarto render docs --profile offline` loads MathJax from a local copy in
+# assets/mathjax instead of the CDN. _prepare.py downloads the copy the first time.
+format:
+  html:
+    html-math-method:
+      method: mathjax
+      url: "/assets/mathjax/tex-svg-full.js"

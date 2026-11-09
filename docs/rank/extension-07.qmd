@@ -1,0 +1,75 @@
+---
+title: "Extension 7: Transforming observations"
+page-layout: article
+---
+
+Observed series often use different units from the variables in the solved model.
+
+::: {.lesson-links}
+[View notebook on GitHub]({{< meta repo-blob >}}/examples/rank/notebooks/rank_extension_07.ipynb){.btn .btn-outline-secondary .btn-sm}
+:::
+
+## Model
+
+So far, we have used variables that we have already defined to solve the model. At the same
+time, estimation usually requires transforming the model variables to match them to the
+actual observed data. As a next step, we keep the economy of [Extension 6](extension-06.qmd)
+and modify our code to incorporate the following observation equation, which expresses the
+output gap in percent and annualizes quarterly inflation and interest-rate deviations,
+
+$$
+\begin{bmatrix}\text{Output gap}\\\text{Inflation}\\\text{Interest rate}\end{bmatrix}
+=\begin{bmatrix}100\hat X_t\\400\hat\Pi_t\\400\hat I_t\end{bmatrix}+u_t,
+\qquad u_t\sim N(0,\Sigma_u).
+$$
+
+We also increase the measurement error so that $m_E=0.25$ of each transformed series' variance.
+
+## Neural network solution
+
+### Formulation
+
+The policy network still returns deviations in model units. We change the units only in the
+observation equation, and the equilibrium residuals keep their original scale.
+
+The loss is unchanged from [Extension 1](extension-01.qmd). It is the weighted mean of the squared residuals $F_1$ (Euler equation), $F_2$ (Phillips curve), and $F_3$ (Taylor rule), with expectations approximated by Monte Carlo shock draws.
+
+### In the code
+
+#### Transform before adding measurement error
+
+We multiply output by 100 and inflation and the interest rate by 400. Then we
+collect these values in the observation dictionary.
+
+```{.python filename="examples/rank/rank_extension_07.py"}
+def observe(self, obs_raw):
+    # New in Extension 7: output gap in percent, inflation and the interest rate annualized.
+    return {"X": 100 * obs_raw["X"], "Pi": 400 * obs_raw["Pi"], "I": 400 * obs_raw["I"]}
+```
+::: {.code-source}
+[View in `rank_extension_07.py` on GitHub]({{< meta repo-blob >}}/examples/rank/rank_extension_07.py)
+:::
+
+`simulate` returns these transformed observations. The notebook then adds measurement
+error with `error_share=0.25`. The particle filter applies exactly the same transformation
+to its predictions before comparing them with the data.
+
+## Results
+
+### Solution
+
+![Mean squared residuals during training, with their average on top and each equation below, smoothed by a moving median over 100 iterations.](/assets/results/rank/extension_07/policy_loss.png)
+
+![Output gap $\hat X_t$ as each estimated parameter varies, the others at reference values, after a productivity innovation of minus one standard deviation.](/assets/results/rank/extension_07/policy_X.png)
+
+![Inflation $\hat\Pi_t$ as each estimated parameter varies.](/assets/results/rank/extension_07/policy_Pi.png)
+
+![Nominal rate $\hat I_t$ as each estimated parameter varies.](/assets/results/rank/extension_07/policy_I.png)
+
+### Likelihood
+
+![Training and validation mean squared error of the likelihood network.](/assets/results/rank/extension_07/likelihood_loss.png)
+
+![Log likelihood as risk aversion $\sigma$ varies, the other parameters at reference values. The line is the likelihood network and the dots are particle-filter evaluations at random values.](/assets/results/rank/extension_07/likelihood.png)
+
+![The same comparison for every estimated parameter.](/assets/results/rank/extension_07/likelihood_all.png)
