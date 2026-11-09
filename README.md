@@ -3,7 +3,8 @@
 Code and learning guide for [*Estimating Nonlinear Heterogeneous Agent Models with Neural Networks*](https://www.hannokase.com/research/deep-learning-zlb/KMR_NeuralNetwork_Hank.pdf)
 by Hanno Kase, Leonardo Melosi, and Matthias Rottner.
 
-The learning guide is published at <https://tseep.github.io/estimating-hank-nn/>.
+The learning guide is published at <https://tseep.github.io/estimating-hank-nn/>, and the
+full guide is also available as a [PDF](https://matthias-rottner.github.io/Files/KMR_LearningGuide.pdf).
 
 The learning examples cover the **New Keynesian baseline and Extensions 1–10**, the
 **Krusell–Smith model with one and two assets**, and the **one-asset HANK model**. Each New

@@ -10,8 +10,15 @@ Learn how to solve and estimate macroeconomic models with neural networks, start
 a small New Keynesian model, where each extension introduces one change at a time, and
 moving on to progressively more complex models.
 
-Start with the [overview](overview.qmd). It explains the method step by step,
-shows how the examples are organized, and sets up the Python environment.
+Start with the [overview](overview.qmd). It explains the method step by step and shows
+how the examples are organized. [Setup](setup.qmd) installs the Python environment.
+
+## Learning guide
+
+The learning guide walks through the method and every example in detail. These pages follow
+it and connect its equations to the code.
+
+[Download the learning guide (PDF)](https://matthias-rottner.github.io/Files/KMR_LearningGuide.pdf){.btn .btn-outline-secondary .btn-sm}
 
 ## Examples
 
